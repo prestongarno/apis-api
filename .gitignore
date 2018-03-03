@@ -1,0 +1,13 @@
+build/.*
+build/*
+**/build/*
+out/.*
+out/*
+**/out/*
+.idea
+**/.idea/*
+.idea/*
+.idea/
+.gradle
+**/.gradle/*
+.gradle/*
