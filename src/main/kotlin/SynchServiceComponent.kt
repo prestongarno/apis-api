@@ -1,11 +1,16 @@
 package com.prestongarno.apis.core
 
+import com.prestongarno.apis.logging.logger
 import java.time.Duration
 import java.util.*
 import kotlin.concurrent.timerTask
 
 
 class SynchServiceComponent {
+
+  val INITIAL_REFRESH_RATE = Duration.ofSeconds(10L)
+
+  val log by this.logger()
 
   @Volatile
   private var apiFetcher: ApiFetcher = ::emptyList
@@ -19,15 +24,17 @@ class SynchServiceComponent {
           SynchServiceComponent::class.qualifiedName ?: ""+".${it.name}"
         },
         daemon = true,
-        period = 0,
+        period = INITIAL_REFRESH_RATE.toMillis(),
         action = { })
   }
 
   init {
-    updateEvery(1L)
+    updateEvery(INITIAL_REFRESH_RATE)
     ResourceManager.addShutdownHook {
+      log.info("Attempting to shut down " + metricFetchTimer.toString())
       metricFetchTimer.purge()
       metricFetchTimer.cancel()
+      log.info("Successfully shut down " + metricFetchTimer.toString())
     }
   }
 
@@ -39,10 +46,13 @@ class SynchServiceComponent {
     synchronized(this) { this.metricFetcher = metricFetcher }
   }
 
-  fun updateEvery(hours: Long) = apply {
+  fun updateEvery(duration: Duration) = apply {
     metricFetchTimer.purge()
-    metricFetchTimer.schedule(timerTask {
-      Metrics.updateApiMetrics(metricFetcher())
-    }, 1L, Duration.ofHours(hours).toMillis())
+    metricFetchTimer.schedule(
+        timerTask {
+          Metrics.updateApiMetrics(metricFetcher())
+        },
+        1L, duration.toMillis()
+    )
   }
 }

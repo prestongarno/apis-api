@@ -7,8 +7,8 @@ object ResourceManager {
   private val disposers = mutableListOf<() -> Unit>()
 
   init {
-    Runtime.getRuntime()
-        .addShutdownHook(thread {
+    Runtime.getRuntime().addShutdownHook(
+        thread(start = false, name = "ResourceManagementHook") {
           disposers.forEach({ it() })
         })
   }

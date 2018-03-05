@@ -1,6 +1,6 @@
 package com.prestongarno.apis.persistence
 
-import com.prestongarno.apis.LocalRepository
+import com.prestongarno.apis.ReadWriteRepository
 import com.prestongarno.apis.core.Metrics
 import com.prestongarno.apis.core.entities.Api
 import com.prestongarno.apis.core.entities.ApiInfo
@@ -14,7 +14,7 @@ import kotlin.coroutines.experimental.buildSequence
 
 class CrudInMemTest {
 
-  lateinit var localRepo: LocalRepository
+  lateinit var localRepo: ReadWriteRepository
 
   @Before fun initRepo() {
     JdbcConnection.restart()

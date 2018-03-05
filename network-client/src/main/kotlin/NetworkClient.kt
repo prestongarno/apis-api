@@ -1,5 +1,6 @@
 package com.prestongarno.apis.net
 
+import com.prestongarno.apis.logging.logger
 import java.net.URI
 
 
@@ -9,7 +10,11 @@ interface NetworkClient {
 
   val defaultHeaders: Map<String, String>
 
+
+
   class Builder internal constructor() {
+
+    private val logger by this.logger()
 
     private var endpoint = URI("http://localhost")
     private var defaultHeaders = mutableMapOf<String, String>()
@@ -21,9 +26,16 @@ interface NetworkClient {
     fun addDefaultHeader(pair: Pair<String, String>) =
         apply { defaultHeaders[pair.first] = pair.second }
 
-    fun build() = object : NetworkClient {
-      override val endpoint: URI = this@Builder.endpoint.copy()
-      override val defaultHeaders = this@Builder.defaultHeaders.toMap()
+    fun build(): NetworkClient {
+      val uri = this@Builder.endpoint.copy()
+      val defHeaders = this@Builder.defaultHeaders.toMap()
+
+      logger.info("Network client created; endpoint: $uri")
+
+      return object : NetworkClient {
+        override val endpoint: URI = uri
+        override val defaultHeaders = defHeaders
+      }
     }
   }
 

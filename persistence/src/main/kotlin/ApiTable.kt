@@ -26,8 +26,8 @@ internal object ApiTable : Table(name = "apis") {
   val preferred = varchar("preferred", 32).nullable()
 
 
-  fun all(): List<Api> {
-    return selectAll().map { it.toApi() }
+  fun all(): List<Api> = transaction {
+    selectAll().map { it.toApi() }
   }
 
   fun put(api: Api): Api {
@@ -44,6 +44,15 @@ internal object ApiTable : Table(name = "apis") {
       ApiVersions.deleteAllWith(newId)
       api.versions.map { ApiVersions.put(newId, it) }
     })
+  }
+
+  fun getById(idMatch: Int) = select { id eq idMatch }
+      .firstOrNull()?.toApi()
+
+  // TODO do this in the DB builtin
+  fun searchByName(match: String): Iterable<Api> = all().filter {
+    it.preferred?.contains(match) == true ||
+        it.versions.firstOrNull { it.name.contains(match) } != null
   }
 
   private fun ResultRow.toApi(): Api {

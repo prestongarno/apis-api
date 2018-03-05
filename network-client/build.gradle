@@ -7,4 +7,5 @@ repositories {
 dependencies {
   implementation project(':controller')
   compile 'com.squareup.retrofit2:retrofit:2.3.0'
+  compile 'com.squareup.retrofit2:converter-moshi:2.3.0'
 }

@@ -1,10 +1,13 @@
 package com.prestongarno.apis.persistence
 
 import com.prestongarno.apis.core.Metrics
+import com.prestongarno.apis.logging.logger
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.Transaction
 import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
+import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.time.Instant
 
@@ -12,8 +15,12 @@ import java.time.Instant
 internal
 object MetricsTable : Table() {
 
+  private val log by logger()
 
-  init { JdbcConnection.conn }
+
+  init {
+    JdbcConnection.conn
+  }
 
   private val id = integer("id")
       .uniqueIndex()
@@ -29,16 +36,22 @@ object MetricsTable : Table() {
   private val numSpecs = integer("num_specs")
 
 
-  fun getPersistentMetrics(): Metrics = selectAll().firstOrNull()?.let {
-    Metrics(it[numApis], it[numEndpoints], it[numSpecs])
-  } ?: Metrics(0,0,0)
+  fun getPersistentMetrics(): Metrics = transaction {
+    log.debug("Getting local metrics; transation: " + this.toString())
+    selectAll()
+        .also { log.debug("SQL statements: " + statements.toString()) }
+        .firstOrNull()
+        ?.let { Metrics(it[numApis], it[numEndpoints], it[numSpecs]) }
+        ?: Metrics(0, 0, 0)
+  }.also { log.debug("local metrics query result: $it") }
 
   fun updateMetrics(metrics: Metrics) {
-    transaction {
+    singleTransation {
       deleteAll()
-      commit()
     }
-    transaction {
+    singleTransation {
+      log.debug("Storing local metrics input: $metrics")
+      log.debug("transation: " + this.toString())
       insert {
         it[numApis] = metrics.numApis
         it[numEndpoints] = metrics.numEndpoints
@@ -47,4 +60,11 @@ object MetricsTable : Table() {
       }
     }
   }
+}
+
+private fun <T> singleTransation(block: Transaction.() -> T): T {
+  val trans = TransactionManager.currentOrNew(TransactionManager.manager.defaultIsolationLevel)
+  val result = trans.block()
+  trans.commit()
+  return result
 }
