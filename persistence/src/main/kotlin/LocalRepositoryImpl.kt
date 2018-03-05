@@ -9,6 +9,7 @@ import org.jetbrains.exposed.sql.deleteWhere
 class LocalRepositoryImpl : LocalRepository {
 
   init {
+    JdbcConnection.conn
     MetricsTable.updateMetrics(Metrics(0,0,0))
   }
 

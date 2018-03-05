@@ -6,12 +6,14 @@ import org.jetbrains.exposed.sql.deleteAll
 import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
-import org.jetbrains.exposed.sql.update
 import java.time.Instant
 
 
 internal
 object MetricsTable : Table() {
+
+
+  init { JdbcConnection.conn }
 
   private val id = integer("id")
       .uniqueIndex()
@@ -38,10 +40,10 @@ object MetricsTable : Table() {
     }
     transaction {
       insert {
-        it[updatedAt] = org.joda.time.DateTime(Instant.now().toEpochMilli())
         it[numApis] = metrics.numApis
         it[numEndpoints] = metrics.numEndpoints
         it[numSpecs] = metrics.numSpecs
+        it[updatedAt] = org.joda.time.DateTime(Instant.now().toEpochMilli())
       }
     }
   }

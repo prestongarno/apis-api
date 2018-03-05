@@ -5,7 +5,7 @@ import java.util.*
 import kotlin.concurrent.timerTask
 
 
-class ServiceComponent {
+class SynchServiceComponent {
 
   @Volatile
   private var apiFetcher: ApiFetcher = ::emptyList
@@ -15,8 +15,8 @@ class ServiceComponent {
 
   private val metricFetchTimer: Timer by lazy {
     kotlin.concurrent.timer(
-        name = ServiceComponent::metricFetchTimer.let {
-          ServiceComponent::class.qualifiedName ?: ""+".${it.name}"
+        name = SynchServiceComponent::metricFetchTimer.let {
+          SynchServiceComponent::class.qualifiedName ?: ""+".${it.name}"
         },
         daemon = true,
         period = 0,

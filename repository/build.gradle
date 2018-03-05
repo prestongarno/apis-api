@@ -1,5 +1,12 @@
 apply plugin: 'java'
 
+repositories {
+  jcenter()
+  maven { url "https://dl.bintray.com/kotlin/exposed" }
+}
+
 dependencies {
-  compile project(':controller')
+  implementation project(':controller')
+  implementation project(':persistence')
+  implementation project(':network-client')
 }

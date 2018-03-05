@@ -1,5 +1,10 @@
 apply plugin: 'java'
 
+repositories {
+  jcenter()
+}
+
 dependencies {
-  compile project(':repository')
+  implementation project(':controller')
+  compile 'com.squareup.retrofit2:retrofit:2.3.0'
 }

@@ -2,8 +2,6 @@ package com.prestongarno.apis.persistence
 
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
-import org.jetbrains.exposed.sql.SqlLogger
-import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.TransactionManager.Companion.manager
 
@@ -15,10 +13,10 @@ object JdbcConnection {
   private var root = TransactionManager.manager.newTransaction()
 
   init {
-    init()
+    restart()
   }
 
-  fun init() {
+  private fun init() {
     root = TransactionManager.currentOrNew(manager.defaultIsolationLevel)
     //root.logger.addLogger(StdOutSqlLogger)
     SchemaUtils.create(ApiTable, ApiVersions, MetricsTable)

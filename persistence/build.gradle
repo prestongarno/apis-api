@@ -2,13 +2,11 @@ apply plugin: 'java'
 
 repositories {
   jcenter()
-  maven {
-    url "https://dl.bintray.com/kotlin/exposed"
-  }
+  maven { url "https://dl.bintray.com/kotlin/exposed" }
 }
 
 dependencies {
-  compile project(':repository')
+  implementation project(":controller")
   compile 'org.jetbrains.exposed:exposed:0.9.1'
   compile 'com.h2database:h2:1.4.196'
 }

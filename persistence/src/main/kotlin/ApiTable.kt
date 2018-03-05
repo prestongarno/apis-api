@@ -17,6 +17,8 @@ import java.time.Instant
 
 internal object ApiTable : Table(name = "apis") {
 
+  init { JdbcConnection.conn }
+
   val id = integer("id")
       .primaryKey()
       .autoIncrement()
