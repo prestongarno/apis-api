@@ -8,6 +8,10 @@ import org.jetbrains.exposed.sql.deleteWhere
 
 class LocalRepositoryImpl : LocalRepository {
 
+  init {
+    MetricsTable.updateMetrics(Metrics(0,0,0))
+  }
+
   override fun getAllApis() = ApiTable.all()
 
   override fun getMetrics(): Metrics =

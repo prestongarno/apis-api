@@ -6,7 +6,7 @@ data class Api(val id: Int = -1, val preferred: String?, val versions: List<ApiV
 
 data class ApiVersion(
     val name: String,
-    val added: java.time.Instant,
+    val added: Long,
     val info: ApiInfo,
     val id: Int = -1
 )

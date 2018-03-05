@@ -13,6 +13,7 @@ import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import org.joda.time.DateTime
+import java.time.Instant
 
 internal object ApiTable : Table(name = "apis") {
 
@@ -76,7 +77,7 @@ internal object ApiVersions : Table() {
   internal
   fun createVersionFromRow(row: ResultRow): ApiVersion = ApiVersion(
       row[name],
-      row[ApiVersions.added].toInstant().toDate().toInstant(),
+      row[ApiVersions.added].toDate().toInstant().toEpochMilli(),
       ApiInfo(emptyMap()))
 
   fun deleteAllWith(api: Int) {
@@ -85,11 +86,11 @@ internal object ApiVersions : Table() {
 
   fun put(rootApiId: Int, version: ApiVersion): ApiVersion {
 
-    val key = transaction {
+    val key = transaction   {
 
       insert {
         it[name] = version.name
-        it[added] = DateTime(java.util.Date.from(version.added))
+        it[added] = DateTime(java.util.Date.from(Instant.ofEpochMilli(version.added)))
         it[apiId] = rootApiId
       }.generatedKey ?: -1
     }

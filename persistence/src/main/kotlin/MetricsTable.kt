@@ -2,6 +2,8 @@ package com.prestongarno.apis.persistence
 
 import com.prestongarno.apis.core.Metrics
 import org.jetbrains.exposed.sql.Table
+import org.jetbrains.exposed.sql.deleteAll
+import org.jetbrains.exposed.sql.insert
 import org.jetbrains.exposed.sql.selectAll
 import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
@@ -25,13 +27,17 @@ object MetricsTable : Table() {
   private val numSpecs = integer("num_specs")
 
 
-  fun getPersistentMetrics(): Metrics = selectAll().first().let {
+  fun getPersistentMetrics(): Metrics = selectAll().firstOrNull()?.let {
     Metrics(it[numApis], it[numEndpoints], it[numSpecs])
-  }
+  } ?: Metrics(0,0,0)
 
   fun updateMetrics(metrics: Metrics) {
     transaction {
-      update({ id eq 0 }) {
+      deleteAll()
+      commit()
+    }
+    transaction {
+      insert {
         it[updatedAt] = org.joda.time.DateTime(Instant.now().toEpochMilli())
         it[numApis] = metrics.numApis
         it[numEndpoints] = metrics.numEndpoints
