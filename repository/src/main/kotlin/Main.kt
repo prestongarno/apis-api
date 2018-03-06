@@ -49,7 +49,7 @@ fun main(args: Array<String>) {
   }
 
   val startTime = Instant.now()
-  val endTime = startTime.plus(Duration.ofMinutes(1L))
+  val endTime = startTime.plus(Duration.ofSeconds(20))
 
   Main.logger.info("Started main thread @ ${Date(startTime.toEpochMilli())}")
 
@@ -60,8 +60,18 @@ fun main(args: Array<String>) {
     if (lastUpdate.plusSeconds(10L).isBefore(Instant.now())) {
       lastUpdate = Instant.now()
       Main.logger.info(Date.from(lastUpdate).toString() +
-          "Local repository metrics: " + foo?.readWriteRepository?.getMetrics()?.toString() ?: "NO CONTROLLER")
+      " Local repository metrics: " + foo?.readWriteRepository?.getMetrics()?.toString()
+          ?: "NO CONTROLLER")
+      val localCount = foo?.readWriteRepository?.getAllApis()?.count() ?: 0
+      Main.logger.info(" Local repository count: $localCount")
     }
 
+  }
+
+  foo!!.readWriteRepository.getAllApis().forEach {
+    println("${it.id} ${it.name} -> " + it.versions.joinToString(separator = "\n\t") {
+      val d = Instant.ofEpochMilli(it.added)
+      "${it.id} ${it.name} ${Date.from(d)}"
+    })
   }
 }

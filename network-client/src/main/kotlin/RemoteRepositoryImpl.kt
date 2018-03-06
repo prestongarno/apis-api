@@ -16,10 +16,7 @@ class RemoteRepositoryImpl(networkClient: NetworkClient): Repository {
 
   override fun searchByName(match: String): Iterable<Api> = emptyList()
 
-  override fun getAllApis(): List<Api> {
-    log.warn("API fetching method '" + this::getAllApis.toString() + "' not implemented.")
-    return emptyList()
-  }
+  override fun getAllApis() = client.getAllRemoteApis()
 
   /**
    * @throws RuntimeException if the network call was unsuccessful

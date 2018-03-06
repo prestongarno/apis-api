@@ -17,30 +17,37 @@ import java.time.Instant
 
 internal object ApiTable : Table(name = "apis") {
 
-  init { JdbcConnection.conn }
+  init {
+    JdbcConnection.conn
+  }
 
   val id = integer("id")
       .primaryKey()
       .autoIncrement()
 
-  val preferred = varchar("preferred", 32).nullable()
+  val name = varchar("name", 128)
+
+  val preferred = varchar("preferred", 64).nullable()
 
 
-  fun all(): List<Api> = transaction {
+  fun all(): List<Api> = singleTransation {
     selectAll().map { it.toApi() }
   }
 
   fun put(api: Api): Api {
 
-    val newId = transaction {
+    val newId = singleTransation {
       (if (api.id >= 0)
         update({ id eq api.id }, limit = 1) { it[preferred] = api.preferred }
       else
-        insert { it[preferred] = api.preferred }.generatedKey!!)
+        insert {
+          it[name] = api.name
+          it[preferred] = api.preferred
+        }.generatedKey!!)
     }.toInt()
 
     // TODO fix this
-    return Api(newId, api.preferred, let {
+    return Api(api.name, newId, api.preferred, let {
       ApiVersions.deleteAllWith(newId)
       api.versions.map { ApiVersions.put(newId, it) }
     })
@@ -56,6 +63,7 @@ internal object ApiTable : Table(name = "apis") {
   }
 
   private fun ResultRow.toApi(): Api {
+    val thisName = this[name]
     val thisId = this[id]
     val preferredValue = this[preferred]
     val transaction = TransactionManager.currentOrNew(TransactionManager.manager.defaultIsolationLevel)
@@ -65,7 +73,8 @@ internal object ApiTable : Table(name = "apis") {
       ApiVersions.createVersionFromRow(it)
     }
     transaction.commit()
-    return Api(thisId, preferredValue, versions)
+    return Api(thisName,
+        thisId, preferredValue, versions)
   }
 
 }
@@ -77,7 +86,7 @@ internal object ApiVersions : Table() {
       .primaryKey()
       .autoIncrement()
 
-  val name = varchar("name", length = 32)
+  val name = varchar("name", length = 64)
       .index(isUnique = false)
 
   val added = date("added")
@@ -87,17 +96,16 @@ internal object ApiVersions : Table() {
 
   internal
   fun createVersionFromRow(row: ResultRow): ApiVersion = ApiVersion(
-      row[name],
-      row[ApiVersions.added].toDate().toInstant().toEpochMilli(),
-      ApiInfo(emptyMap()))
+      row[name], row[ApiVersions.added].toDate().toInstant().toEpochMilli(),
+      ApiInfo(emptyMap()), row[id])
 
   fun deleteAllWith(api: Int) {
-    deleteWhere { apiId eq api }
+    singleTransation { deleteWhere { apiId eq api } }
   }
 
   fun put(rootApiId: Int, version: ApiVersion): ApiVersion {
 
-    val key = transaction   {
+    val key = transaction {
 
       insert {
         it[name] = version.name

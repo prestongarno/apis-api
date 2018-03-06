@@ -46,9 +46,7 @@ object MetricsTable : Table() {
   }.also { log.debug("local metrics query result: $it") }
 
   fun updateMetrics(metrics: Metrics) {
-    singleTransation {
-      deleteAll()
-    }
+    singleTransation({ deleteAll() })
     singleTransation {
       log.debug("Storing local metrics input: $metrics")
       log.debug("transation: " + this.toString())
@@ -62,7 +60,7 @@ object MetricsTable : Table() {
   }
 }
 
-private fun <T> singleTransation(block: Transaction.() -> T): T {
+internal fun <T> singleTransation(block: Transaction.() -> T): T {
   val trans = TransactionManager.currentOrNew(TransactionManager.manager.defaultIsolationLevel)
   val result = trans.block()
   trans.commit()

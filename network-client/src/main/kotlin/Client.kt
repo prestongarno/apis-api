@@ -1,6 +1,7 @@
 package com.prestongarno.apis.net
 
 import com.prestongarno.apis.core.Metrics
+import com.prestongarno.apis.core.entities.Api
 import com.prestongarno.apis.logging.logger
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonAdapter
@@ -42,6 +43,7 @@ class Client(networkClient: NetworkClient) {
       }
       .addConverterFactory(Moshi.Builder()
           .add(MetricsAdapter())
+          .add(ApiAdapter())
           .build()
           .let(MoshiConverterFactory::create)
       ).build()
@@ -63,6 +65,13 @@ class Client(networkClient: NetworkClient) {
               null
             }
           }
+
+  fun getAllRemoteApis(): List<Api> = retrofitClient.create(ApiDataCall::class.java)
+      .getApisFromRemote()
+      .execute()
+      .body()
+      ?.values
+      ?: emptyList<Api>().also { logger.warn("FAIL") }
 }
 
 private class MetricsAdapter : JsonAdapter<Metrics>() {
