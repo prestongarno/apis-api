@@ -14,7 +14,7 @@ class MetricsTest {
 
     remoteRepo.getMetrics().also {
       println(it)
-      require(it.numApis > 0)
+      require(it.numAPIs > 0)
     }
   }
 }

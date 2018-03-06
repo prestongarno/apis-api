@@ -1,27 +1,27 @@
 package com.prestongarno.apis.net
 
+import com.beust.klaxon.JsonObject
+import com.beust.klaxon.Klaxon
 import com.prestongarno.apis.core.Metrics
 import com.prestongarno.apis.core.entities.Api
+import com.prestongarno.apis.core.entities.ApiVersion
 import com.prestongarno.apis.logging.logger
-import com.squareup.moshi.FromJson
-import com.squareup.moshi.JsonAdapter
-import com.squareup.moshi.JsonReader
-import com.squareup.moshi.JsonWriter
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.ToJson
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import retrofit2.Retrofit
-import retrofit2.converter.moshi.MoshiConverterFactory
-import kotlin.reflect.KProperty
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.*
+import java.util.Locale
 
 
-class Client(networkClient: NetworkClient) {
+class Client(private val networkClient: NetworkClient) {
 
 
   private val logger by logger()
 
-  private val retrofitClient = OkHttpClient.Builder()
+  val httpClient = OkHttpClient.Builder()
       .addInterceptor {
         logger.info(it.request().toString())
         it.proceed(it.request())
@@ -36,89 +36,87 @@ class Client(networkClient: NetworkClient) {
             .let(interceptor::proceed)
       }
       .build()
+
+
+  private val retrofitClient = httpClient
       .let(Retrofit.Builder()::client)
       .apply {
         HttpUrl.get(networkClient.endpoint)?.let(::baseUrl)
             ?: networkClient.endpoint.toString().let(::baseUrl)
       }
-      .addConverterFactory(Moshi.Builder()
-          .add(MetricsAdapter())
-          .add(ApiAdapter())
-          .build()
-          .let(MoshiConverterFactory::create)
-      ).build()
+      .build()
 
 
   fun refreshMetrics(): Metrics? =
-      retrofitClient.create(MetricsCall::class.java)
-          .getMetrics()
-          .execute().let {
-            if (it.isSuccessful) it.body().also {
-              logger.info("Refresh metrics: $it")
-            } else {
+      httpClient.newCall(Request.Builder()
+          .url(networkClient.endpoint.toURL().toString() + "metrics.json")
+          .also {
+            for ((name, value) in networkClient.defaultHeaders) it.header(name, value)
+          }.build())
+          .execute()
+          .let {
+            if (it.isSuccessful) it.body()
+                ?.string()
+                ?.let { metricsFromString(it) }
+            else {
               it.apply {
                 logger.warn("Unsuccessful metrics call:" +
                     "\n\tCode: ${code()}" +
                     "\n\tMessage: ${it.message()}" +
-                    "\n\tError Message: ${it.errorBody()?.toString()}")
+                    "\n\tError Message: ${it.message()?.toString()}")
               }
               null
             }
           }
 
-  fun getAllRemoteApis(): List<Api> = retrofitClient.create(ApiDataCall::class.java)
-      .getApisFromRemote()
+  fun getAllRemoteApis(): List<Api> = httpClient.newCall(Request.Builder()
+      .url(networkClient.endpoint.toURL().toString() + "list.json")
+      .also { for ((name, value) in networkClient.defaultHeaders) it.header(name, value) }
+      .build())
       .execute()
-      .body()
-      ?.values
-      ?: emptyList<Api>().also { logger.warn("FAIL") }
+      .let { it.body()!!.charStream() }
+      .let { Klaxon().parseJsonObject(it) }
+      .let(::createFromMap)
 }
 
-private class MetricsAdapter : JsonAdapter<Metrics>() {
-
-  private val logger by this.logger()
-
-  @FromJson
-  override fun fromJson(reader: JsonReader?): Metrics? {
-    return try {
-      reader?.let {
-        var apiCount: Int = 0
-        var endpointsCount: Int = 0
-        var specCount: Int = 0
-        it.beginObject()
-        while (it.hasNext()) {
-          val name = it.nextName()
-          when (name) {
-            "numAPIs" -> apiCount = it.nextInt()
-            Metrics::numEndpoints.name -> endpointsCount = it.nextInt()
-            Metrics::numSpecs.name -> specCount = it.nextInt()
-            else -> Unit
-          }
-        }
-        Metrics(
-            numApis = apiCount,
-            numEndpoints = endpointsCount,
-            numSpecs = specCount)
-            .also { logger.info("Parsed metrics: $it") }
-      }
-    } catch (ex: Exception) {
-      logger.warn("Error parsing metrics: ${ex.message}")
-      null
-    }
-  }
-
-  @ToJson
-  override fun toJson(writer: JsonWriter?, value: Metrics?) {
-    writer ?: return
-    value ?: return
-    writer.name("numAPIs")
-        .value(value.numApis)
-    writer.name(Metrics::numEndpoints)
-        .value(value.numEndpoints)
-    writer.name(Metrics::numSpecs)
-        .value(value.numSpecs)
+@Suppress("UNCHECKED_CAST")
+private fun createFromMap(map: JsonObject): List<Api> {
+  return map.map { (name, values) ->
+    name to values as? JsonObject
+  }.mapNotNull {
+    if (it.second is JsonObject) it as? Pair<String, JsonObject> else null
+  }.map { (name, obj) ->
+    Api(name, -1, obj.string("preferred"), obj.obj("versions").let(::toApiVersions))
   }
 }
 
-fun JsonWriter.name(property: KProperty<*>) =
-    apply { name(property.name) }
+@Suppress("UNCHECKED_CAST")
+private fun toApiVersions(obj: JsonObject?): List<ApiVersion> {
+  obj ?: return emptyList()
+
+  return obj.entries.filter {
+    it.value is JsonObject
+  }.map {
+    it.key to it.value
+  }.map {
+    it as Pair<String, JsonObject>
+  }.map { (name, obj) ->
+    ApiVersion(
+        name,
+        parseDate(obj.string("added")!!).toEpochMilli(),
+        obj.string("swaggerUrl") ?: "",
+        obj.string("swaggerYamlUrl") ?: "",
+        parseDate(obj.string("updated")!!).toEpochMilli())
+  }
+}
+
+private fun parseDate(str: String): Instant {
+  val format = SimpleDateFormat(
+      "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+  format.timeZone = TimeZone.getTimeZone("UTC")
+  return format.parse(str).toInstant()
+}
+
+private fun metricsFromString(value: String) =
+    Klaxon().parse<Metrics>(value) ?: Metrics(0, 0, 0)
+

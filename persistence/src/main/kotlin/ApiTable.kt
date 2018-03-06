@@ -1,7 +1,6 @@
 package com.prestongarno.apis.persistence
 
 import com.prestongarno.apis.core.entities.Api
-import com.prestongarno.apis.core.entities.ApiInfo
 import com.prestongarno.apis.core.entities.ApiVersion
 import org.jetbrains.exposed.sql.ResultRow
 import org.jetbrains.exposed.sql.Table
@@ -94,10 +93,25 @@ internal object ApiVersions : Table() {
   val apiId = integer("api_id")
       .references(ApiTable.id)
 
+  val swaggerUrl = varchar("swaggerUrl", 256)
+
+  val swaggerYamlUrl = varchar("swaggerYamlUrl", 256)
+
+  val updated = date("updated")
+
   internal
-  fun createVersionFromRow(row: ResultRow): ApiVersion = ApiVersion(
-      row[name], row[ApiVersions.added].toDate().toInstant().toEpochMilli(),
-      ApiInfo(emptyMap()), row[id])
+  fun createVersionFromRow(row: ResultRow): ApiVersion =
+      ApiVersion(
+          row[name],
+          row[ApiVersions.added].toDate()
+              .toInstant()
+              .toEpochMilli(),
+          row[swaggerUrl],
+          row[swaggerYamlUrl],
+          row[updated].toDate()
+              .toInstant()
+              .toEpochMilli(),
+          row[id])
 
   fun deleteAllWith(api: Int) {
     singleTransation { deleteWhere { apiId eq api } }
@@ -109,6 +123,9 @@ internal object ApiVersions : Table() {
 
       insert {
         it[name] = version.name
+        it[updated] = DateTime(java.util.Date.from(Instant.ofEpochMilli(version.updated)))
+        it[swaggerUrl] = version.swaggerUrl
+        it[swaggerYamlUrl] = version.swaggerYamlUrl
         it[added] = DateTime(java.util.Date.from(Instant.ofEpochMilli(version.added)))
         it[apiId] = rootApiId
       }.generatedKey ?: -1

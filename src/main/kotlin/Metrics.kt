@@ -4,7 +4,7 @@ import com.prestongarno.apis.logging.logger
 
 
 data class Metrics(
-    val numApis: Int,
+    val numAPIs: Int,
     val numEndpoints: Int,
     val numSpecs: Int) {
 

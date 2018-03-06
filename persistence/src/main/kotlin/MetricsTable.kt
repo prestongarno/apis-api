@@ -51,7 +51,7 @@ object MetricsTable : Table() {
       log.debug("Storing local metrics input: $metrics")
       log.debug("transation: " + this.toString())
       insert {
-        it[numApis] = metrics.numApis
+        it[numApis] = metrics.numAPIs
         it[numEndpoints] = metrics.numEndpoints
         it[numSpecs] = metrics.numSpecs
         it[updatedAt] = org.joda.time.DateTime(Instant.now().toEpochMilli())
