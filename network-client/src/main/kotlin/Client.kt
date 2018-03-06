@@ -55,10 +55,9 @@ class Client(private val networkClient: NetworkClient) {
           }.build())
           .execute()
           .let {
-            if (it.isSuccessful) it.body()
-                ?.string()
-                ?.let { metricsFromString(it) }
-            else {
+            if (it.isSuccessful) {
+              it.body()?.string()?.let(::metricsFromString)
+            } else {
               it.apply {
                 logger.warn("Unsuccessful metrics call:" +
                     "\n\tCode: ${code()}" +
