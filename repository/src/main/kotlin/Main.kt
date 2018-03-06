@@ -1,6 +1,7 @@
 package com.prestongarno.apis
 
 import com.prestongarno.apis.core.Metrics
+import com.prestongarno.apis.core.ResourceManager
 import com.prestongarno.apis.graphql.GraphQlServer
 import com.prestongarno.apis.logging.logger
 import com.prestongarno.apis.net.NetworkClient
@@ -45,17 +46,25 @@ fun main(args: Array<String>) {
       Main.logger.info("Metrics daemon notified an update: $it")
       if (graphQlServer == null) graphQlServer = GraphQlServer(localRepository)
           .also(ctrl::useRemoteEndpoint)
+          .also {
+            val s = Server(it)
+            s.start()
+            ResourceManager.addShutdownHook(s::close)
+          }
     }
 
     init(ctrl.start(refreshRate = Duration.ofHours(3L)))
+    ctrl.syncService.updateEvery(Duration.ofHours(3L))
   }
 
   val startTime = Instant.now()
   val endTime = startTime.plus(Duration.ofHours(3L))
 
   Main.logger.info("Started main thread @ ${Date(startTime.toEpochMilli())}")
+  Main.logger.info("Scheduled uptime until: $endTime")
 
   var lastUpdate = startTime
+
 
   while (Instant.now().isBefore(endTime)) {
 
@@ -65,6 +74,7 @@ fun main(args: Array<String>) {
           " Local repository metrics: " + controller?.readWriteRepository?.getMetrics()?.toString())
       sampleGraphQlQuery(controller!!)
     }
+    Thread.sleep(1000)
   }
 
 }

@@ -10,7 +10,7 @@ dependencies {
   implementation project(':controller')
   implementation project(':persistence')
   implementation project(':network-client')
-  implementation project(':graphql-server')
+  implementation project(':graphql')
 }
 
 apply plugin: 'application'
@@ -18,3 +18,8 @@ apply plugin: 'application'
 mainClassName = 'com.prestongarno.apis.MainKt'
 
 defaultTasks 'run'
+kotlin {
+  experimental {
+    coroutines "enable"
+  }
+}

@@ -18,6 +18,9 @@ class SynchServiceComponent {
   @Volatile
   private var metricFetcher: MetricFetcher = { Metrics(0, 0, 0) }
 
+  @Volatile
+  private var localMetricFetcher: MetricFetcher = { Metrics(0, 0, 0) }
+
   private val metricFetchTimer: Timer by lazy {
     kotlin.concurrent.timer(
         name = SynchServiceComponent::metricFetchTimer.let {
@@ -46,11 +49,17 @@ class SynchServiceComponent {
     synchronized(this) { this.metricFetcher = metricFetcher }
   }
 
+  fun provideLocalMetricFetcher(metricFetcher: MetricFetcher) = apply {
+    synchronized(this) { this.localMetricFetcher = metricFetcher }
+  }
+
   fun updateEvery(duration: Duration) = apply {
     metricFetchTimer.purge()
-    metricFetchTimer.schedule(
+    metricFetchTimer.scheduleAtFixedRate(
         timerTask {
-          Metrics.updateApiMetrics(metricFetcher())
+          val current = localMetricFetcher()
+          val remoteMetrics = metricFetcher()
+          if (remoteMetrics != current) Metrics.updateApiMetrics(remoteMetrics)
         },
         1L, duration.toMillis()
     )

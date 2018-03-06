@@ -11,26 +11,29 @@ class Controller(
     private val remoteRepository: Repository) {
 
 
-  private val synchService by lazy(::SynchServiceComponent)
+  val syncService by lazy(::SynchServiceComponent)
 
   @Volatile
-  private var graphqlEndpoint: Endpoint? = null
+  private var graphqlEndpoint: GraphQlEndpoint? = null
 
   private val log by logger()
 
-  fun start(refreshRate: Duration = synchService.INITIAL_REFRESH_RATE) = apply {
-    synchService.provideApiFetcher(remoteRepository::getAllApis)
-    synchService.provideMetricFetcher(remoteRepository::getMetrics)
+  fun start(refreshRate: Duration = syncService.INITIAL_REFRESH_RATE) = apply {
+
+    syncService.provideApiFetcher(remoteRepository::getAllApis)
+        .provideMetricFetcher(remoteRepository::getMetrics)
+        .provideLocalMetricFetcher(readWriteRepository::getMetrics)
+
     Metrics.listen {
       log.debug("Metrics listener (changed metrics: $it)")
       if (!updateLocalDataFromRemoteRepository(it)) {
         log.warn("Data saved incorrectly:\n\tremote metrics: $it\n\tlocal metrics: ${readWriteRepository.getMetrics()}")
       }
     }
-    synchService.updateEvery(refreshRate)
+    syncService.updateEvery(refreshRate)
   }
 
-  fun useRemoteEndpoint(endpoint: Endpoint) {
+  fun useRemoteEndpoint(endpoint: GraphQlEndpoint) {
     synchronized(this) { this.graphqlEndpoint = endpoint }
   }
 

@@ -1,6 +1,6 @@
 package com.prestongarno.apis
 
 
-interface Endpoint {
+interface GraphQlEndpoint {
   fun handleRequest(value: String): String
 }
