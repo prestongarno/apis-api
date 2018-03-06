@@ -1,0 +1,11 @@
+apply plugin: 'java'
+
+repositories {
+  jcenter()
+  maven { url "https://dl.bintray.com/pgutkowski/Maven" }
+}
+
+dependencies {
+  compile 'com.github.pgutkowski:kgraphql:0.2.5'
+  compile project(':controller')
+}

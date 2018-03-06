@@ -37,13 +37,10 @@ object MetricsTable : Table() {
 
 
   fun getPersistentMetrics(): Metrics = transaction {
-    log.debug("Getting local metrics; transation: " + this.toString())
-    selectAll()
-        .also { log.debug("SQL statements: " + statements.toString()) }
-        .firstOrNull()
+    selectAll().firstOrNull()
         ?.let { Metrics(it[numApis], it[numEndpoints], it[numSpecs]) }
         ?: Metrics(0, 0, 0)
-  }.also { log.debug("local metrics query result: $it") }
+  }
 
   fun updateMetrics(metrics: Metrics) {
     singleTransation({ deleteAll() })

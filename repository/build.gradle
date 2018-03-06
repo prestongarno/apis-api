@@ -3,10 +3,18 @@ apply plugin: 'java'
 repositories {
   jcenter()
   maven { url "https://dl.bintray.com/kotlin/exposed" }
+  maven { url "https://dl.bintray.com/pgutkowski/Maven" }
 }
 
 dependencies {
   implementation project(':controller')
   implementation project(':persistence')
   implementation project(':network-client')
+  implementation project(':graphql-server')
 }
+
+apply plugin: 'application'
+
+mainClassName = 'com.prestongarno.apis.MainKt'
+
+defaultTasks 'run'

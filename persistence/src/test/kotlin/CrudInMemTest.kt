@@ -41,7 +41,7 @@ class CrudInMemTest {
   @Test fun putsAndUpdatesApi() {
 
     val now = Date.from(Instant.now()).toInstant().toEpochMilli()
-    val version = ApiVersion("Hello", now, "", "", "")
+    val version = ApiVersion("Hello", now, "", "", -1L)
 
     localRepo.updateOrCreateApi(
         Api(preferred = "v1", versions = emptyList(), name = ""))
@@ -54,14 +54,14 @@ class CrudInMemTest {
   }
 
   @Test fun versionDateAddedIsConsistent() {
-/*    localRepo.updateOrCreateApi(Api(-1, null, emptyList())).also {
+    localRepo.updateOrCreateApi(Api("", -1, null, emptyList())).also {
       require(it.hasValidId())
       require(it.id == 1)
-    }*/
+    }
 
     val now = Instant.now().toEpochMilli()
 
-    val version = ApiVersion("foo", now, "", "", "")
+    val version = ApiVersion("foo", now, "", "", 1L)
         .let { api -> ApiVersions.put(1, api) }
 
     require(now == version.added)

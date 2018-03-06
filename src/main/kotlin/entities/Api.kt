@@ -13,8 +13,7 @@ data class ApiVersion(
     //val info: ApiInfo,
     val id: Int = -1)
 
-data class ApiInfo(val info: Map<String, Any?>)
-
+// TODO add logos, contact info, etc in these classes
 data class Foo(
     val title: String,
     val description: String,

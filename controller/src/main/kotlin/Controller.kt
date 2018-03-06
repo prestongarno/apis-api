@@ -8,12 +8,15 @@ import java.time.Duration
 
 class Controller(
     val readWriteRepository: ReadWriteRepository,
-    val remoteRepository: Repository) {
+    private val remoteRepository: Repository) {
 
 
-  val synchService by lazy(::SynchServiceComponent)
+  private val synchService by lazy(::SynchServiceComponent)
 
-  val log by logger()
+  @Volatile
+  private var graphqlEndpoint: Endpoint? = null
+
+  private val log by logger()
 
   fun start(refreshRate: Duration = synchService.INITIAL_REFRESH_RATE) = apply {
     synchService.provideApiFetcher(remoteRepository::getAllApis)
@@ -25,6 +28,17 @@ class Controller(
       }
     }
     synchService.updateEvery(refreshRate)
+  }
+
+  fun useRemoteEndpoint(endpoint: Endpoint) {
+    synchronized(this) { this.graphqlEndpoint = endpoint }
+  }
+
+  fun graphqlQuery(query: String) = try {
+    graphqlEndpoint?.handleRequest(query)!!
+  } catch (ex: Exception) {
+    log.warn("Error fetching graphql: " + ex.message)
+    "{\"data\": {}, \"errors\": { \"message\": \"${ex.message}\" }"
   }
 
   private

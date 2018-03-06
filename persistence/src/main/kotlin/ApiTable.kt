@@ -52,13 +52,16 @@ internal object ApiTable : Table(name = "apis") {
     })
   }
 
-  fun getById(idMatch: Int) = select { id eq idMatch }
-      .firstOrNull()?.toApi()
+  fun getById(idMatch: Int) = singleTransation {
+    select { id eq idMatch }.firstOrNull()?.toApi()
+  }
 
   // TODO do this in the DB builtin
-  fun searchByName(match: String): Iterable<Api> = all().filter {
-    it.preferred?.contains(match) == true ||
-        it.versions.firstOrNull { it.name.contains(match) } != null
+  fun searchByName(match: String) = singleTransation {
+    all().filter {
+      it.preferred?.contains(match) == true ||
+          it.versions.firstOrNull { it.name.contains(match) } != null
+    }
   }
 
   private fun ResultRow.toApi(): Api {

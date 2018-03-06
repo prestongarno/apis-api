@@ -1,9 +1,6 @@
 package com.prestongarno.apis.persistence
 
-import com.prestongarno.apis.core.entities.ApiInfo
 import java.time.Instant
-
-fun noInfo() = ApiInfo(emptyMap())
 
 fun Long.toJodaDate() = org.joda.time.Instant(this).toDateTime()!!
 

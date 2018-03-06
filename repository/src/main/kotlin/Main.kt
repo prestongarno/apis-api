@@ -1,6 +1,7 @@
 package com.prestongarno.apis
 
 import com.prestongarno.apis.core.Metrics
+import com.prestongarno.apis.graphql.GraphQlServer
 import com.prestongarno.apis.logging.logger
 import com.prestongarno.apis.net.NetworkClient
 import com.prestongarno.apis.net.RemoteRepositoryImpl
@@ -21,11 +22,11 @@ fun main(args: Array<String>) {
 
   Logger.getGlobal().level = Level.ALL
 
-  var foo: Controller? = null
+  var controller: Controller? = null
 
-  val init: (Controller) -> Unit = { foo = it }
+  val init: (Controller) -> Unit = { controller = it }
 
-  val mainThread = thread {
+  thread {
     val localRepository: ReadWriteRepository =
         LocalRepositoryImpl()
 
@@ -34,22 +35,23 @@ fun main(args: Array<String>) {
         .build()
         .let(::RemoteRepositoryImpl)
 
-    remoteRepo.getMetrics().also {
-      Main.logger.info("Fetched metrics remotely: $it")
-    }
+    remoteRepo.getMetrics()
+        .also { Main.logger.info("Fetched remote metrics: $it") }
+
+    val ctrl = Controller(localRepository, remoteRepo)
+    var graphQlServer: GraphQlServer? = null
 
     Metrics.listen {
       Main.logger.info("Metrics daemon notified an update: $it")
+      if (graphQlServer == null) graphQlServer = GraphQlServer(localRepository)
+          .also(ctrl::useRemoteEndpoint)
     }
 
-    val controller = Controller(localRepository, remoteRepo)
-        .start(refreshRate = Duration.ofSeconds(10L))
-
-    init(controller)
+    init(ctrl.start(refreshRate = Duration.ofHours(3L)))
   }
 
   val startTime = Instant.now()
-  val endTime = startTime.plus(Duration.ofSeconds(20))
+  val endTime = startTime.plus(Duration.ofHours(3L))
 
   Main.logger.info("Started main thread @ ${Date(startTime.toEpochMilli())}")
 
@@ -57,23 +59,35 @@ fun main(args: Array<String>) {
 
   while (Instant.now().isBefore(endTime)) {
 
-    if (lastUpdate.plusSeconds(10L).isBefore(Instant.now())) {
+    if (lastUpdate.plusSeconds(100L).isBefore(Instant.now())) {
       lastUpdate = Instant.now()
       Main.logger.info(Date.from(lastUpdate).toString() +
-      " Local repository metrics: " + foo?.readWriteRepository?.getMetrics()?.toString()
-          ?: "NO CONTROLLER")
-      val localCount = foo?.readWriteRepository?.getAllApis()?.count() ?: 0
-      Main.logger.info(" Local repository count: $localCount")
+          " Local repository metrics: " + controller?.readWriteRepository?.getMetrics()?.toString())
+      sampleGraphQlQuery(controller!!)
     }
-
   }
 
-  foo!!.readWriteRepository.getAllApis().forEach {
-    println("${it.id} ${it.name} -> " + it.versions.joinToString(separator = "\n\t") {
-      val d = Instant.ofEpochMilli(it.added)
-      "${it.id} ${it.name} ${Date.from(d)}"
-    })
-  }
 }
 
 
+private fun sampleGraphQlQuery(controller: Controller) {
+  for (i in 1..controller.readWriteRepository.getMetrics().numAPIs) {
+    controller.graphqlQuery("""
+      |{
+      |  api(id: $i) {
+      |    name,
+      |    preferred,
+      |    __typename,
+      |    versions {
+      |      name,
+      |      id,
+      |      updated
+      |      swaggerUrl
+      |    }
+      |  }
+      |}
+      """.trimMargin("|"))
+        .also(::println)
+  }
+
+}
