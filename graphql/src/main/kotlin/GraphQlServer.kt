@@ -27,9 +27,7 @@ class GraphQlServer(private val localRepository: Repository) : GraphQlEndpoint {
     }
 
     query("metrics") {
-      resolver<Metrics> {
-        localRepository.getMetrics()
-      }
+      resolver(localRepository::getMetrics)
     }
 
     type<Api>()
@@ -39,3 +37,4 @@ class GraphQlServer(private val localRepository: Repository) : GraphQlEndpoint {
 
   override fun handleRequest(value: String): String = schema.execute(value)
 }
+
