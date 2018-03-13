@@ -6,6 +6,7 @@ repositories {
   maven { url 'https://dl.bintray.com/pgutkowski/Maven' }
   maven { url  'http://dl.bintray.com/kotlin/ktor' }
   maven { url 'https://dl.bintray.com/kotlin/kotlinx' }
+  maven { url 'https://oss.jfrog.org/artifactory/oss-snapshot-local'}
 }
 
 def ktor_version = '0.9.2-alpha-2'
@@ -20,6 +21,8 @@ dependencies {
   compile "io.ktor:ktor-server-netty:$ktor_version"
   compile "ch.qos.logback:logback-classic:1.2.1"
   testCompile "io.ktor:ktor-server-test-host:$ktor_version"
+  testCompile 'com.prestongarno.kotlinq:kotlinq-dsl:0.4.1-SNAPSHOT'
+  testCompile 'com.prestongarno.kotlinq:kotlinq-jvm:0.4.1-SNAPSHOT'
 }
 
 apply plugin: 'application'

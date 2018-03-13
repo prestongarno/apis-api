@@ -3,6 +3,10 @@ package com.prestongarno.apis
 import com.prestongarno.apis.graphql.GraphQlServer
 import com.prestongarno.apis.persistence.LocalRepositoryImpl
 import org.junit.Test
+import org.kotlinq.api.Fragment
+import org.kotlinq.dsl.query
+import java.time.Duration
+import java.time.Instant
 
 
 class GraphQlServerTest : MockRemoteService() {
@@ -15,24 +19,32 @@ class GraphQlServerTest : MockRemoteService() {
     // create GraphQl server
     val gqlServer = GraphQlServer(localRepository)
 
-    gqlServer.handleRequest("""
-      |{
-      |  api(id: 1) {
-      |    name
-      |  }
-      |}
-    """.trimMargin())
-        .also(::println)
+    Server(gqlServer).start()
 
-    """
-      |{
-      |  apiSearch(query: "") {
-      |    name
-      |  }
-      |}
-      """.trimMargin("|")
-        .let(gqlServer::handleRequest)
-        .also(::println)
+    val now = Instant.now()
+    val duration = Duration.ofSeconds(30L)
+    while (now.plusSeconds(duration.seconds).isAfter(Instant.now())) {
+      // nothing
+    }
+  }
+}
 
+fun GraphQlServer.execute(fragment: Fragment): String {
+  return this.handleRequest(
+      fragment.toGraphQl(
+          pretty = false,
+          idAndTypeName = false))
+}
+
+private fun queryById(id: Int): Fragment = query {
+  "api"("id" to id) on def("Api") {
+    "name"(!string)
+    "preferred"(!string)
+    "versions" on def("ApiVersion") {
+      "name"(!string)
+      "added"(!string)
+      "swaggerUrl"(!string)
+      "swaggerYamlUrl"(!string)
+    }
   }
 }

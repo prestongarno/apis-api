@@ -1,6 +1,11 @@
 package com.prestongarno.apis.core.entities
 
-data class Api(val name: String, val id: Int = -1, val preferred: String?, val versions: List<ApiVersion>) {
+data class Api(
+    val name: String,
+    val id: Int = -1,
+    val preferred: String?,
+    val versions: List<ApiVersion>) {
+
   fun hasValidId() = id > 0
 }
 

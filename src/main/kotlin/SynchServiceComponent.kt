@@ -3,7 +3,7 @@ package com.prestongarno.apis.core
 import com.prestongarno.apis.logging.logger
 import java.time.Duration
 import java.util.*
-import kotlin.concurrent.timerTask
+import kotlin.concurrent.timer
 
 
 class SynchServiceComponent {
@@ -21,15 +21,8 @@ class SynchServiceComponent {
   @Volatile
   private var localMetricFetcher: MetricFetcher = { Metrics(0, 0, 0) }
 
-  private val metricFetchTimer: Timer by lazy {
-    kotlin.concurrent.timer(
-        name = SynchServiceComponent::metricFetchTimer.let {
-          SynchServiceComponent::class.qualifiedName ?: ""+".${it.name}"
-        },
-        daemon = true,
-        period = INITIAL_REFRESH_RATE.toMillis(),
-        action = { })
-  }
+  private var metricFetchTimer: Timer =
+      createTimer(INITIAL_REFRESH_RATE) { /* nothing */ }
 
   init {
     updateEvery(INITIAL_REFRESH_RATE)
@@ -54,14 +47,21 @@ class SynchServiceComponent {
   }
 
   fun updateEvery(duration: Duration) = apply {
+    log.info("Updating metrics every ${duration.seconds} seconds")
     metricFetchTimer.purge()
-    metricFetchTimer.scheduleAtFixedRate(
-        timerTask {
-          val current = localMetricFetcher()
-          val remoteMetrics = metricFetcher()
-          if (remoteMetrics != current) Metrics.updateApiMetrics(remoteMetrics)
-        },
-        1L, duration.toMillis()
-    )
+    metricFetchTimer.cancel()
+    metricFetchTimer = createTimer(duration) {
+      val current = localMetricFetcher()
+      val remoteMetrics = metricFetcher()
+      if (remoteMetrics != current) Metrics.updateApiMetrics(remoteMetrics)
+    }
   }
+
+  private fun createTimer(refreshRate: Duration = INITIAL_REFRESH_RATE, task: TimerTask.() -> Unit): Timer =
+      timer(name = SynchServiceComponent::metricFetchTimer.let {
+        SynchServiceComponent::class.qualifiedName ?: ""+".${it.name}"
+      },
+          daemon = false,
+          period = refreshRate.toMillis(),
+          action = task)
 }

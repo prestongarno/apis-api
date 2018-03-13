@@ -1,5 +1,6 @@
 package com.prestongarno.apis
 
+import com.prestongarno.apis.core.ResourceManager
 import com.prestongarno.apis.logging.logger
 import io.ktor.application.call
 import io.ktor.request.queryString
@@ -18,17 +19,17 @@ class Server(private val endpoint: GraphQlEndpoint) : AutoCloseable {
     embeddedServer(Netty, port = 8081) {
       routing {
         post("/graphql") {
-          val str = call.request.queryString()
-          log.info(str)
           call.respondText {
-            endpoint.handleRequest(str)
+            endpoint.handleRequest(call.request.queryString())
           }
         }
       }
     }
   }
 
-  fun start() { engine.start() }
+  init { ResourceManager.addShutdownHook(::close) }
+
+  fun start(wait: Boolean = false) { engine.start(wait) }
 
   override fun close() {
     engine.stop(gracePeriod = 3L, timeout = 5L, timeUnit = TimeUnit.SECONDS)
