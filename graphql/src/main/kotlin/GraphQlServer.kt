@@ -3,6 +3,7 @@ package com.prestongarno.apis.graphql
 import com.github.pgutkowski.kgraphql.KGraphQL
 import com.prestongarno.apis.GraphQlEndpoint
 import com.prestongarno.apis.Repository
+import com.prestongarno.apis.core.Metrics
 import com.prestongarno.apis.core.entities.Api
 import com.prestongarno.apis.core.entities.ApiVersion
 
@@ -25,8 +26,15 @@ class GraphQlServer(private val localRepository: Repository) : GraphQlEndpoint {
       resolver { id: Int -> localRepository.getById(id) }
     }
 
+    query("metrics") {
+      resolver<Metrics> {
+        localRepository.getMetrics()
+      }
+    }
+
     type<Api>()
     type<ApiVersion>()
+    type<Metrics>()
   }
 
   override fun handleRequest(value: String): String = schema.execute(value)
