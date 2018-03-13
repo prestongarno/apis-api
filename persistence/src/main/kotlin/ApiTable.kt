@@ -58,10 +58,8 @@ internal object ApiTable : Table(name = "apis") {
 
   // TODO do this in the DB builtin
   fun searchByName(match: String) = singleTransation {
-    all().filter {
-      it.preferred?.contains(match) == true ||
-          it.versions.firstOrNull { it.name.contains(match) } != null
-    }
+    select { name like "%$match%" }
+        .map { it.toApi() }
   }
 
   private fun ResultRow.toApi(): Api {

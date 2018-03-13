@@ -21,7 +21,6 @@ class RemoteRepositoryImpl(networkClient: NetworkClient): Repository {
   /**
    * @throws RuntimeException if the network call was unsuccessful
    */
-  override fun getMetrics(): Metrics {
-    return client.refreshMetrics() ?: throw RuntimeException()
-  }
+  override fun getMetrics(): Metrics =
+      client.refreshMetrics() ?: throw RuntimeException()
 }
