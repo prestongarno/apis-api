@@ -17,7 +17,7 @@ private object Main {
 
 fun main(args: Array<String>) {
 
-  Logger.getGlobal().level = Level.ALL
+  Logger.getGlobal().level = Level.INFO
 
 
   val localRepository: ReadWriteRepository =
