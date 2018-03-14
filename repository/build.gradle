@@ -39,13 +39,10 @@ kotlin {
 
 docker {
   javaApplication {
-    baseImage = 'dockerfile/java:openjdk-8-jre'
+    baseImage = 'java:8-jre'
     maintainer = 'Preston Garno "prestongarno@gmail.com"'
-    ports = rootProject.findProperty("ports")
-            ?.toString()
-            ?.split(',')
-            ?.collect { it.toInteger() } ?: [8080, 8081]
-    //ports = [9090, 5701]
+    //ports = rootProject.findProperty("ports")?.toString()?.split(',')?.collect { it.toInteger() } ?: [8080, 8081] 
+    ports = [8080,8081]
     tag = 'apis-api:' + rootProject.version
   }
 }
