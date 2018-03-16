@@ -1,0 +1,44 @@
+sudo: required #is required to use docker service in travis
+
+language: java
+
+jdk:
+  - oraclejdk8
+
+services:
+  - docker # required, but travis uses older version of docker :(
+
+install:
+  - ./gradlew install
+
+script:
+  - ./gradlew test
+
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - $HOME/.gradle/caches/
+    - $HOME/.gradle/wrapper/
+    - $HOME/.m2
+
+
+notifications:
+  - email: false
+
+before_install:
+  - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
+  - echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, PR=$PR, BRANCH=$BRANCH"
+
+after_success:
+  - docker --version  # document the version travis is using
+  - pip install --user awscli # install aws cli w/o sudo
+  - export PATH=$PATH:$HOME/.local/bin # put aws in the path
+  - eval $(aws ecr get-login --region us-east-1) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
+  - docker build -t $PROJECT_NAME .
+  - docker tag $PROJECT_NAME:$BUILD_VERSION [your_ecr_account].dkr.ecr.us-east-1.amazonaws.com/my_example_app:latest
+  - docker push [your_ecr_account].dkr.ecr.us-east-1.amazonaws.com/$PROJECT_NAME:$BUILD_VERSION
+

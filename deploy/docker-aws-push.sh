@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ "$BRANCH" == "master" ]; then
+  docker --version  # document the version travis is using
+  pip install --user awscli # install aws cli w/o sudo
+  export PATH=$PATH:$HOME/.local/bin # put aws in the path
+  eval $(aws ecr get-login --region us-east-1) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
+  FULL_NAME=$PROJECT_NAME:$BUILD_VERSION
+  docker build -t $PROJECT_NAME .
+  docker tag $FULL_NAME [your_ecr_account].dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME
+  docker push [your_ecr_account].dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME
+else 
+  echo "Not master branch, skipping AWS deploy"
+fi

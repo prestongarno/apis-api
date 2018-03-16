@@ -35,10 +35,12 @@ class GraphQlServer(private val localRepository: Repository) : GraphQlEndpoint {
     type<Metrics>()
   }
 
-  override fun handleRequest(value: String): String = try {
-    schema.execute(value)
-  } catch (ex: kotlin.Exception) {
-    """{"data": {},"errors":[{"message":"${ex.localizedMessage}"}]}"""
-  }
+  override fun handleRequest(value: String): String =
+      try {
+        schema.execute(value)
+      } catch (ex: kotlin.Exception) {
+        """{"data": {},"errors":[{"message":"${ex.localizedMessage}"}]}"""
+      }
+
 }
 

@@ -16,4 +16,14 @@ class ConfigurationTests : MockRemoteService() {
         numEndpoints = 24805,
         numSpecs = 1419))
   }
+
+  @Test fun confWorks() {
+    Server.Configuration {
+      port = 1080
+      host = "hell"
+    }.also { conf ->
+      require(conf.port == 1080)
+      require(conf.host == "hell")
+    }
+  }
 }

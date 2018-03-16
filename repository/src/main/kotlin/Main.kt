@@ -1,5 +1,6 @@
 package com.prestongarno.apis
 
+import com.prestongarno.apis.Main.log
 import com.prestongarno.apis.core.Metrics
 import com.prestongarno.apis.graphql.GraphQlServer
 import com.prestongarno.apis.logging.logger
@@ -11,7 +12,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 private object Main {
-  val logger by this.logger()
+  val log by this.logger()
 }
 
 
@@ -28,22 +29,32 @@ fun main(args: Array<String>) {
       .build()
       .let(::RemoteRepositoryImpl)
 
-  remoteRepo.getMetrics()
-      .also { Main.logger.info("Fetched remote metrics: $it") }
+  remoteRepo.getMetrics().also {
+    Main.log.info("Successfully fetched remote metrics: $it")
+  }
 
-  val ctrl = Controller(localRepository, remoteRepo)
   var graphQlServer: GraphQlServer? = null
 
   Metrics.listen {
-    Main.logger.info("Metrics daemon notified an update: $it")
-    if (graphQlServer == null) graphQlServer = GraphQlServer(localRepository)
-        .also(ctrl::useRemoteEndpoint)
-        .also {
-          val s = Server(it)
-          s.start(wait = false)
-        }
+    log.info("Metrics daemon notified an update: $it")
+
+    if (graphQlServer == null) graphQlServer = GraphQlServer(localRepository).also {
+      server(it) {
+        port = 8081
+        host = "0.0.0.0"
+        blockThread = false
+        autoStart = true
+      }
+    }
   }
 
-  ctrl.start(refreshRate = Duration.ofMinutes(3L))
+  Controller(localRepository, remoteRepo)
+      .start(refreshRate = Duration.ofMinutes(3L))
 }
 
+
+fun server(
+    gql: GraphQlServer,
+    block: Server.Configuration.Builder.() -> Unit
+) = Server(gql, Server.Configuration(block)
+    .also { Main.log.info(it.toString()) })
