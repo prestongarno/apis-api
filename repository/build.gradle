@@ -17,10 +17,10 @@ dependencies {
   implementation project(':persistence')
   implementation project(':network-client')
   implementation project(':graphql')
-  compile "io.ktor:ktor:$ktor_version"
-  compile "io.ktor:ktor-server-core:$ktor_version"
-  compile "io.ktor:ktor-server-netty:$ktor_version"
-  compile "ch.qos.logback:logback-classic:1.2.1"
+  implementation "io.ktor:ktor:$ktor_version"
+  implementation "io.ktor:ktor-server-core:$ktor_version"
+  implementation "io.ktor:ktor-server-netty:$ktor_version"
+  implementation "ch.qos.logback:logback-classic:1.2.1"
   testCompile "io.ktor:ktor-server-test-host:$ktor_version"
   testCompile 'com.prestongarno.kotlinq:kotlinq-dsl:0.4.1-SNAPSHOT'
   testCompile 'com.prestongarno.kotlinq:kotlinq-jvm:0.4.1-SNAPSHOT'
@@ -41,8 +41,7 @@ docker {
   javaApplication {
     baseImage = 'java:8-jre'
     maintainer = 'Preston Garno "prestongarno@gmail.com"'
-    //ports = rootProject.findProperty("ports")?.toString()?.split(',')?.collect { it.toInteger() } ?: [8080, 8081] 
-    ports = [8080,8081]
+    ports = [8081]
     tag = 'apis-api:' + rootProject.version
   }
 }

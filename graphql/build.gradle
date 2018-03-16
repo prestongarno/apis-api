@@ -6,6 +6,6 @@ repositories {
 }
 
 dependencies {
-  compile 'com.github.pgutkowski:kgraphql:0.2.5'
-  compile project(':controller')
+  implementation 'com.github.pgutkowski:kgraphql:0.2.5'
+  implementation project(':controller')
 }

@@ -3,6 +3,6 @@ rootProject.name = 'apis-api'
 include ':persistence'
 include ':repository'
 include ':network-client'
-include 'controller'
-include 'graphql'
+include ':controller'
+include ':graphql'
 

@@ -7,8 +7,10 @@ repositories {
 
 dependencies {
   implementation project(":controller")
-  compile 'org.jetbrains.exposed:exposed:0.9.1'
-  compile 'com.h2database:h2:1.4.196'
+  implementation('org.jetbrains.exposed:exposed:0.9.1') {
+    exclude group: 'ch.qos.logback', module: 'logback-classic'
+  }
+  implementation 'com.h2database:h2:1.4.196'
 }
 kotlin {
   experimental {
