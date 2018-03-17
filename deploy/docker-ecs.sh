@@ -20,7 +20,7 @@ if [ "$BRANCH" == "master" ]; then
   eval $(aws ecr get-login --no-include-email --region us-east-1) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
   FULL_NAME="$PROJECT_NAME:$BUILD_VERSION"
   docker tag "$FULL_NAME" "788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME"
-  docker push "788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME"
+  docker push "788626906849.dkr.ecr.us-east-1.amazonaws.com/$PROJECT_NAME"
 
 else 
   echo "Not master branch, skipping AWS deploy"
