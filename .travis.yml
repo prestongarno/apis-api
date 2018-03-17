@@ -23,6 +23,7 @@ before_install:
   else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
 - echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, PR=$PR, BRANCH=$BRANCH"
 after_success:
+  - ./gradlew dockerBuildImage
   - ./deploy/docker-ecs.sh
 
 env:
