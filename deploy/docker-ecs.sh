@@ -4,13 +4,13 @@ if [ "$BRANCH" == "master" ]; then
 
   ./gradlew dockerBuildImage
 
+  #| sed -E 's/^(.*)\s=\s/\U\1=/g' \
   gpg --decrypt --batch --passphrase "$GMAIL_GPG" deploy/aws.credentials.gpg \
     | sed -E 's/^\[/#\[/g' \
-    | sed -E 's/^(.*)\s=\s/\U\1=/g' \
     | source /dev/stdin
 
   REGION="us-east-1"
-  echo "AWS_ACCESS_KEY_ID sha256sum = $(echo $AWS_ACCESS_KEY_ID | sha256sum)"
+  echo "aws_access_key_id sha256sum = $(echo $aws_access_key_id | sha256sum)"
 
   docker --version  # document the version travis is using
   if [[ "$(whereis aws)" = *":" ]]; then
