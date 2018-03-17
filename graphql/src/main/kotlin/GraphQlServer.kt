@@ -6,6 +6,7 @@ import com.prestongarno.apis.Repository
 import com.prestongarno.apis.core.Metrics
 import com.prestongarno.apis.core.entities.Api
 import com.prestongarno.apis.core.entities.ApiVersion
+import com.prestongarno.apis.logging.logger
 
 
 class GraphQlServer(private val localRepository: Repository) : GraphQlEndpoint {
@@ -35,10 +36,13 @@ class GraphQlServer(private val localRepository: Repository) : GraphQlEndpoint {
     type<Metrics>()
   }
 
+  private val log by logger()
+
   override fun handleRequest(value: String): String =
       try {
         schema.execute(value)
       } catch (ex: kotlin.Exception) {
+        log.warn("Error with query", ex)
         """{"data": {},"errors":[{"message":"${ex.localizedMessage}"}]}"""
       }
 

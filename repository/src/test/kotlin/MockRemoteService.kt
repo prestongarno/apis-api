@@ -21,23 +21,25 @@ open class MockRemoteService {
 
   private val log by logger()
 
-  val engine = embeddedServer(Netty, port = 8080) {
-    routing {
+  val engine by lazy {
+    embeddedServer(Netty, port = 8080) {
+      routing {
 
-      get("/") {
-        call.respondText("404 Nothing Is Here")
-      }
+        get("/") {
+          call.respondText("404 Nothing Is Here")
+        }
 
-      get("/list.json") {
-        call.respondFile(
-            baseDir = baseResourceDir,
-            fileName = "apis.json")
-      }
+        get("/list.json") {
+          call.respondFile(
+              baseDir = baseResourceDir,
+              fileName = "apis.json")
+        }
 
-      get("/metrics.json") {
-        call.respondFile(
-            baseDir = baseResourceDir,
-            fileName = "metrics.json")
+        get("/metrics.json") {
+          call.respondFile(
+              baseDir = baseResourceDir,
+              fileName = "metrics.json")
+        }
       }
     }
   }
@@ -52,6 +54,7 @@ open class MockRemoteService {
   }
 
   @After fun killEmbeddedServer() {
-    engine.stop(gracePeriod = 1L, timeout = 10L, timeUnit = TimeUnit.MILLISECONDS)
+    engine.stop(gracePeriod = 1L, timeout = 2L, timeUnit = TimeUnit.NANOSECONDS)
   }
 }
+

@@ -16,7 +16,7 @@ data class Metrics(
 
     internal
     fun updateApiMetrics(metrics: Metrics) {
-      log.debug("Updating global metrics value: $metrics")
+      log.info("Updating global metrics value: $metrics")
       listeners.forEach { it(metrics) }
     }
 

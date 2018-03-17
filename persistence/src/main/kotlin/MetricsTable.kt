@@ -46,7 +46,6 @@ object MetricsTable : Table() {
     singleTransation({ deleteAll() })
     singleTransation {
       log.debug("Storing local metrics input: $metrics")
-      log.debug("transation: " + this.toString())
       insert {
         it[numApis] = metrics.numAPIs
         it[numEndpoints] = metrics.numEndpoints

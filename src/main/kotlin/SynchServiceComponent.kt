@@ -58,9 +58,7 @@ class SynchServiceComponent {
   }
 
   private fun createTimer(refreshRate: Duration = INITIAL_REFRESH_RATE, task: TimerTask.() -> Unit): Timer =
-      timer(name = SynchServiceComponent::metricFetchTimer.let {
-        SynchServiceComponent::class.qualifiedName ?: ""+".${it.name}"
-      },
+      timer(name = SynchServiceComponent::metricFetchTimer.name + "-0",
           daemon = false,
           period = refreshRate.toMillis(),
           action = task)

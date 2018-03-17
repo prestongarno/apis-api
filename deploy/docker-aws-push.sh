@@ -1,5 +1,7 @@
 #!/bin/bash
 
+exit 0
+
 if [ "$BRANCH" == "master" ]; then
   docker --version  # document the version travis is using
   pip install --user awscli # install aws cli w/o sudo

@@ -19,7 +19,11 @@ class GraphQlServerTest : MockRemoteService() {
     // create GraphQl server
     val gqlServer = GraphQlServer(localRepository)
 
-    Server(gqlServer).start()
+    Server.Configuration {
+      closeImmediately = true
+      host = "127.0.0.1"
+    }.let { Server(gqlServer, it).start() }
+
 
     val now = Instant.now()
     val duration = Duration.ofSeconds(30L)

@@ -8,8 +8,9 @@ import kotlin.reflect.KProperty
 
 class LoggingProvider<T : Any>(val clazz: KClass<T>) {
 
-  operator fun provideDelegate(inst: Any?, property: KProperty<*>) =
-      lazy { LoggerFactory.getLogger(clazz.java) }
+  operator fun provideDelegate(inst: Any?, property: KProperty<*>) = lazy {
+    LoggerFactory.getLogger(clazz.java)
+  }
 }
 
 inline fun <reified T : Any> KCallable<T>.logger() =

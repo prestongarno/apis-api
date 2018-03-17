@@ -7,6 +7,7 @@ import com.prestongarno.apis.logging.logger
 import com.prestongarno.apis.net.NetworkClient
 import com.prestongarno.apis.net.RemoteRepositoryImpl
 import com.prestongarno.apis.persistence.LocalRepositoryImpl
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -18,8 +19,7 @@ private object Main {
 
 fun main(args: Array<String>) {
 
-  Logger.getGlobal().level = Level.INFO
-
+  LoggerFactory.getLogger("com.prestongarno")
 
   val localRepository: ReadWriteRepository =
       LocalRepositoryImpl()
@@ -56,5 +56,4 @@ fun main(args: Array<String>) {
 fun server(
     gql: GraphQlServer,
     block: Server.Configuration.Builder.() -> Unit
-) = Server(gql, Server.Configuration(block)
-    .also { Main.log.info(it.toString()) })
+) = Server(gql, Server.Configuration(block))

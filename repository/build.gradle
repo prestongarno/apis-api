@@ -20,7 +20,7 @@ dependencies {
   implementation "io.ktor:ktor:$ktor_version"
   implementation "io.ktor:ktor-server-core:$ktor_version"
   implementation "io.ktor:ktor-server-netty:$ktor_version"
-  implementation "ch.qos.logback:logback-classic:1.2.1"
+  //implementation "ch.qos.logback:logback-classic:1.2.1"
   testCompile "io.ktor:ktor-server-test-host:$ktor_version"
   testCompile 'com.prestongarno.kotlinq:kotlinq-dsl:0.4.1-SNAPSHOT'
   testCompile 'com.prestongarno.kotlinq:kotlinq-jvm:0.4.1-SNAPSHOT'
@@ -39,7 +39,7 @@ kotlin {
 
 docker {
   javaApplication {
-    baseImage = 'java:8-jre'
+    baseImage = 'openjdk:9-jre-slim'
     maintainer = 'Preston Garno "prestongarno@gmail.com"'
     ports = [8081]
     tag = 'apis-api:' + rootProject.version
