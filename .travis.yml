@@ -1,44 +1,30 @@
-sudo: required #is required to use docker service in travis
-
+sudo: required
 language: java
-
 jdk:
-  - oraclejdk8
-
+- oraclejdk8
 services:
-  - docker # required, but travis uses older version of docker :(
-
+- docker
 install:
-  - ./gradlew install
-
+- "./gradlew install"
 script:
-  - ./gradlew test
-
-
+- "./gradlew test"
 before_cache:
-  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
-  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
-
+- rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+- rm -fr $HOME/.gradle/caches/*/plugin-resolution/
 cache:
   directories:
-    - $HOME/.gradle/caches/
-    - $HOME/.gradle/wrapper/
-    - $HOME/.m2
-
-
+  - "$HOME/.gradle/caches/"
+  - "$HOME/.gradle/wrapper/"
+  - "$HOME/.m2"
 notifications:
-  - email: false
-
+- email: false
 before_install:
-  - export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
-  - echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, PR=$PR, BRANCH=$BRANCH"
-
+- export BRANCH=$(if [ "$TRAVIS_PULL_REQUEST" == "false" ]; then echo $TRAVIS_BRANCH;
+  else echo $TRAVIS_PULL_REQUEST_BRANCH; fi)
+- echo "TRAVIS_BRANCH=$TRAVIS_BRANCH, PR=$PR, BRANCH=$BRANCH"
 after_success:
-  - docker --version  # document the version travis is using
-  - pip install --user awscli # install aws cli w/o sudo
-  - export PATH=$PATH:$HOME/.local/bin # put aws in the path
-  - eval $(aws ecr get-login --region us-east-1) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
-  - docker build -t $PROJECT_NAME .
-  - docker tag $PROJECT_NAME:$BUILD_VERSION [your_ecr_account].dkr.ecr.us-east-1.amazonaws.com/my_example_app:latest
-  - docker push [your_ecr_account].dkr.ecr.us-east-1.amazonaws.com/$PROJECT_NAME:$BUILD_VERSION
+  - ./deploy/docker-ecs.sh
 
+env:
+  global:
+    secure: IW6/22R/m6dWF0+TV1XQbndFcEQNIlz54Lp8M+gEspIO805fzX1NWHyc72SMtq9wHLLGrgrLdiVBXxoAYy1OBrhtORAkyiVD5pF/ZmuGV/XzUqjB6n+5VKxlmxC/i4xqLpjt0NbSrx3vHbQ0iUaz9wT9YXvCnyO0UYXa037SL/fYZLGA85huGy4R2KPN/9CZHUYoTs+v9Vvb9zf5MSLTHx1RSzBtY8PaMC8YqAdq6dXJBIrO0QbzH1ECuukJuQwuEjHMo7EiTaTQItSOExXrk8SUUpOW1UGy/JYWwyhAcr5vK8CPjHh0gHVrEXlaOaDopQ5U/nzRD7ivhUJVWOjRQcyNRjLNr2crLEYmTFsHz+wZA3ZnsgBbv+iJIuQlnyFziF53PqFPme+/S2+tKeNI0fsOMigISCzlDnrVoJrxIfMvrs8O2WOOcRqvkHKdGX3uwCot8DDUlHJfH8K9d9GvzKfFxagpz/ZkOWjd9bAKnOcwNv1mzmKqU0R3XfepEVumwBT0Mw+QxLe1+GBX7eJY9wdSVUtS6NAZ7xn9n7jf+UGy1qk4te0DPX5L0/1VhFkNn7AvenclocrOCccwx1dnwvUG4+RDPAm6rwE0738h1BnThRbfVIXAR75QkJfhIdRg66Pi+yqJaGwcFv4xJo5BW2ztIy+h+ngxZYHQetSe3dY=
