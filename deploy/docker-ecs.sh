@@ -4,10 +4,8 @@ if [ "$BRANCH" == "master" ]; then
 
   ./gradlew dockerBuildImage
 
-  gpg --decrypt --batch --passphrase "$GMAIL_GPG" deploy/aws.credentials.gpg \
-    | sed -E 's/^\[/#\[/g' \
-    | sed -E 's/^(.*)\s=\s/\1=/g' \
-    | source /dev/stdin
+  mkdir -p ~/.aws
+  gpg --decrypt --batch --passphrase "$GMAIL_GPG" deploy/aws.credentials.gpg > ~/.aws/credentials
 
   REGION="us-east-1"
   echo "aws_access_key_id sha256sum = $(echo $aws_access_key_id | sha256sum)"
