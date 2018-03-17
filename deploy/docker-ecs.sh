@@ -13,13 +13,11 @@ if [ "$BRANCH" == "master" ]; then
   echo "AWS_ACCESS_KEY_ID sha256sum = $(echo $AWS_ACCESS_KEY_ID | sha256sum)"
 
   docker --version  # document the version travis is using
-  if [[ "$(whereis aws)" = *": " ]]; then
+  if [[ "$(whereis aws)" = *":" ]]; then
     pip install --user awscli # install aws cli w/o sudo
   fi
   export PATH="$PATH:$HOME/.local/bin" # put aws in the path
-  echo "FUCK"
   eval $(aws ecr get-login --no-include-email --region us-east-1) #needs AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY envvars
-  echo "FUCK2"
   FULL_NAME="$PROJECT_NAME:$BUILD_VERSION"
   docker tag "$FULL_NAME" "788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME"
   docker push "788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME"
