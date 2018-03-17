@@ -19,9 +19,9 @@ if [ "$BRANCH" == "master" ]; then
   #FULL_NAME=$(echo "$PROJECT_NAME:$BUILD_VERSION" | sed -E 's/(.*)/\L\1/g')
   FULL_NAME="$PROJECT_NAME:$BUILD_VERSION"
   echo "FULL_NAME=$FULL_NAME"
-  sudo docker tag $FULL_NAME 788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME
-  sudo docker images
-  sudo docker push 788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME
+  docker tag $FULL_NAME 788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME
+  docker images
+  docker push 788626906849.dkr.ecr.us-east-1.amazonaws.com/$FULL_NAME
 
 else 
   echo "Not master branch, skipping AWS deploy"
