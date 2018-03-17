@@ -4,9 +4,9 @@ if [ "$BRANCH" == "master" ]; then
 
   ./gradlew dockerBuildImage
 
-  #| sed -E 's/^(.*)\s=\s/\U\1=/g' \
   gpg --decrypt --batch --passphrase "$GMAIL_GPG" deploy/aws.credentials.gpg \
     | sed -E 's/^\[/#\[/g' \
+    | sed -E 's/^(.*)\s=\s/\1=/g' \
     | source /dev/stdin
 
   REGION="us-east-1"
